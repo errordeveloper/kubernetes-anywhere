@@ -21,7 +21,7 @@ mount_make_rshared() {
   docker run \
     --pid="host" \
     --privileged="true" \
-    "${KUBERNETES_ANYWHERE_TOOLBOX_IMAGE}" nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared /
+    "${KUBERNETES_ANYWHERE_TOOLBOX_IMAGE}" nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared / /
 }
 
 if [[ $(docker inspect --format='{{.State.Status}}' kubelet-volumes 2> /dev/null) = 'created' ]]
