@@ -171,7 +171,7 @@ write_files:
       set -o nounset
 
       echo "AWS_LOCAL_HOSTNAME=\"$(hostname -f)\"" >> /etc/kubernetes-anywhere.env
-      echo "APISERVER_PUBLIC_IP=\"$(curl http://169.254.169.254/latest/meta-data/public-ipv4)\"" >> /etc/kubernetes-anywhere.env
+      echo "APISERVER_PUBLIC_IP=\"$(curl --silent http://169.254.169.254/latest/meta-data/public-ipv4)\"" >> /etc/kubernetes-anywhere.env
 
       systemctl daemon-reload
 
