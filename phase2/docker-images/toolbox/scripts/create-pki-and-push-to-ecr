@@ -18,7 +18,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-create-pki-containers
+create-pki-containers "$@"
 
 doc=$(curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document)
 AWS_DEFAULT_REGION=$(printf "%s" "${doc}" | jq -r .region)
