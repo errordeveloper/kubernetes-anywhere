@@ -102,11 +102,10 @@ write_files:
       WEAVE_VERSION="1.5.2"
       USE_CNI="yes"
       WEAVEPROXY_ARGS="--no-detect-tls --rewrite-inspect --log-level=debug"
-      WEAVE_INIT_PEER_COUNT="--init-peer-count 7"
       WEAVE_SCRIPT_VERSION="v1.5.2"
       ETCD_CLUSTER_SIZE="3"
       CLOUD_PROVIDER="aws"
-      KUBERNETES_ANYWHERE_TOOLBOX_IMAGE="weaveworks/kubernetes-anywhere:toolbox-v1.2.4-a7f6273"
+      KUBERNETES_ANYWHERE_TOOLBOX_IMAGE="weaveworks/kubernetes-anywhere:toolbox-v1.2.4-10019f9"
       KUBERNETES_ANYWHERE_APISERVER_IMAGE="weaveworks/kubernetes-anywhere:apiserver-v1.2"
       KUBERNETES_ANYWHERE_SCHEDULER_IMAGE="weaveworks/kubernetes-anywhere:scheduler-v1.2"
       KUBERNETES_ANYWHERE_CONTROLLER_MANAGER_IMAGE="weaveworks/kubernetes-anywhere:controller-manager-v1.2"
@@ -192,6 +191,8 @@ write_files:
       docker run \
         -v /etc/systemd/system:/host-systemd \
           $toolbox install-systemd-units-with-pki
+
+      echo "WEAVE_KNOWN_PEERS=\"$(docker run ${toolbox} find-weave-peers-by-ec2-tag)\"" >> /etc/kubernetes-anywhere.env
 
       systemctl daemon-reload
 
