@@ -105,7 +105,7 @@ write_files:
       WEAVE_SCRIPT_VERSION="v1.5.2"
       ETCD_CLUSTER_SIZE="3"
       CLOUD_PROVIDER="aws"
-      KUBERNETES_ANYWHERE_TOOLBOX_IMAGE="weaveworks/kubernetes-anywhere:toolbox-v1.2.4-c31f853"
+      KUBERNETES_ANYWHERE_TOOLBOX_IMAGE="weaveworks/kubernetes-anywhere:toolbox-v1.2.4-4024eb7"
       KUBERNETES_ANYWHERE_APISERVER_IMAGE="weaveworks/kubernetes-anywhere:apiserver-v1.2"
       KUBERNETES_ANYWHERE_SCHEDULER_IMAGE="weaveworks/kubernetes-anywhere:scheduler-v1.2"
       KUBERNETES_ANYWHERE_CONTROLLER_MANAGER_IMAGE="weaveworks/kubernetes-anywhere:controller-manager-v1.2"
