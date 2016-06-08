@@ -24,14 +24,16 @@ APISERVER_PUBLIC_IP="$(curl --silent http://169.254.169.254/latest/meta-data/pub
 
 kubectl \
   --kubeconfig="/tmp/kubeconfig" \
-  config set-cluster local-cluster \
+  config set-cluster ec2-cluster \
     --server="https://${APISERVER_PUBLIC_IP}:443" \
+    --certificate-authority="/root/.kube/kube-ca.crt" \
+    --embed-certs \
   > /dev/null
 
 kubectl \
   --kubeconfig="/tmp/kubeconfig" \
   config set-context kubernetes-anywhere \
-    --cluster="local-cluster" \
+    --cluster="ec2-cluster" \
   > /dev/null
 
 cat /tmp/kubeconfig
