@@ -1,6 +1,6 @@
 #cloud-config
 
-# Copyright 2015-2016 The Kubernetes Authors All rights reserved.
+# Copyright 2016 The Kubernetes Authors All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -102,50 +102,27 @@ write_files:
       WEAVE_VERSION="1.5.2"
       USE_CNI="yes"
       WEAVEPROXY_ARGS="--no-detect-tls --rewrite-inspect --log-level=debug"
-      WEAVE_INIT_PEER_COUNT="--init-peer-count 3"
       WEAVE_SCRIPT_VERSION="v1.5.2"
       ETCD_CLUSTER_SIZE="1"
       ETCD_NODE_NAME="etcd1"
       CLOUD_PROVIDER="aws"
-      DOCKER_ARGS="--host=fd:// --storage-driver=overlay"
-      KUBERNETES_ANYWHERE_TOOLBOX_IMAGE="weaveworks/kubernetes-anywhere:toolbox-v1.2"
+      KUBERNETES_ANYWHERE_TOOLBOX_IMAGE="weaveworks/kubernetes-anywhere:toolbox-v1.2.4-4024eb7"
       KUBERNETES_ANYWHERE_APISERVER_IMAGE="weaveworks/kubernetes-anywhere:apiserver-v1.2"
       KUBERNETES_ANYWHERE_SCHEDULER_IMAGE="weaveworks/kubernetes-anywhere:scheduler-v1.2"
       KUBERNETES_ANYWHERE_CONTROLLER_MANAGER_IMAGE="weaveworks/kubernetes-anywhere:controller-manager-v1.2"
       KUBERNETES_ANYWHERE_KUBELET_IMAGE="weaveworks/kubernetes-anywhere:kubelet-v1.2"
       KUBERNETES_ANYWHERE_PROXY_IMAGE="weaveworks/kubernetes-anywhere:proxy-v1.2"
 
-  - path: /etc/systemd/system/docker.socket
+  - path: /etc/systemd/system/docker.service.d/override.conf
     permissions: '0644'
     owner: root
     content: |
-      [Unit]
-      Description=Docker Socket for the API
-      PartOf=docker.service
-      [Socket]
-      ListenStream=/var/run/docker.sock
-      SocketMode=0660
-      [Install]
-      WantedBy=sockets.target
-
-  - path: /etc/systemd/system/docker.service
-    permissions: '0644'
-    owner: root
-    content: |
-      [Unit]
-      Description=Docker Application Container Engine
-      Documentation=http://docs.docker.com
-      After=docker.socket network.target
-      Requires=docker.socket
       [Service]
-      EnvironmentFile=/etc/kubernetes-anywhere.env
-      ExecStart=/usr/bin/docker daemon $DOCKER_ARGS
+      MountFlags=shared
+      ExecStart=
+      ExecStart=/usr/bin/docker daemon --host="fd://" --storage-driver="overlay"
       Restart=on-failure
-      LimitNOFILE=1048576
-      LimitNPROC=1048576
-      [Install]
-      WantedBy=weave-network.target
-      WantedBy=weave.service
+      TasksMax=infinity
 
   - path: /etc/systemd/system/ecr-login-refresh.timer
     permissions: '0644'
@@ -184,7 +161,7 @@ write_files:
       WantedBy=kubernetes-master.target
       WantedBy=kubernetes-node.target
 
-  - path: /tmp/kubernetes-anywhere-provision.sh
+  - path: /tmp/kubernetes-anywhere-bootstrap.sh
     owner: root
     permissions: '0755'
     content: |
@@ -195,6 +172,7 @@ write_files:
       set -o nounset
 
       echo "AWS_LOCAL_HOSTNAME=\"$(hostname -f)\"" >> /etc/kubernetes-anywhere.env
+      echo "APISERVER_PUBLIC_IP=\"$(curl --silent http://169.254.169.254/latest/meta-data/public-ipv4)\"" >> /etc/kubernetes-anywhere.env
 
       systemctl daemon-reload
 
@@ -215,6 +193,8 @@ write_files:
         -v /etc/systemd/system:/host-systemd \
           $toolbox install-systemd-units-with-pki
 
+      echo "WEAVE_KNOWN_PEERS=\"$(docker run ${toolbox} find-weave-peers-by-ec2-tag)\"" >> /etc/kubernetes-anywhere.env
+
       systemctl daemon-reload
 
       systemctl enable weave.service weaveproxy.service weaveplugin.service weave-expose.service weave-network.target
@@ -224,13 +204,15 @@ write_files:
 
       case "${NAME_TAG}" in
         kubernetes-master)
+
           ## as master builds PKI images, it needs to login to ECR first
           systemctl start ecr-login.service
           ## this is to be done only once, so there is no unit for it
           docker run \
             -v /root/.docker/:/root/.docker/ \
             -v /var/run/docker.sock:/docker.sock \
-              $toolbox create-pki-and-push-to-ecr
+              $toolbox create-pki-and-push-to-ecr \
+                "IP:${APISERVER_PUBLIC_IP}"
           ## image names won't change, so this only needs to be done once also
           docker run \
               $toolbox detect-ecr-pki \
@@ -268,4 +250,4 @@ write_files:
       esac
 
 runcmd:
-  - /tmp/kubernetes-anywhere-provision.sh
+  - /tmp/kubernetes-anywhere-bootstrap.sh
