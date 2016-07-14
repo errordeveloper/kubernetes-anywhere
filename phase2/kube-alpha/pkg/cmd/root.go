@@ -48,12 +48,12 @@ func init() {
 	RootCmd.PersistentFlags().StringVarP(&config.disco, "disco", "", "weave",
 		`which service discovery mechanism to use for kubernetes
 bootstrap (choose from "weave", "dns", "token",
-"consul", default: "weave").`)
+"consul").`)
 	RootCmd.PersistentFlags().StringVarP(&config.net, "net", "", "weave",
 		`which pod network to create (choose from "weave",
-"flannel", default: "weave")`)
+"flannel")`)
 	RootCmd.PersistentFlags().StringVarP(&config.pki, "pki", "", "auto",
-		`certificate provider, default "auto" to ask the
+		`certificate provider, to ask the
 discovery mechanism to bootstrap certs for you when
 you "init" (chose from "vault", "amazon-cm", "containers",
 "token").`)
