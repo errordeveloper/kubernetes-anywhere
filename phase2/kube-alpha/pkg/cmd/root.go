@@ -37,6 +37,8 @@ type Config struct {
 	dryRun *bool
 }
 
+// TODO log everything really nicely, so that the user can see what happened.
+
 func init() {
 	RootCmd.AddCommand(NewCmdInit(os.Stdout))
 	RootCmd.AddCommand(NewCmdJoin(os.Stdout))
