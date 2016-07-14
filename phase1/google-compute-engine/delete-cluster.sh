@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-etcd_instances=($(seq -s ' ' -f 'kube-etcd-%g' 1 3))
 dynamic_firewall_rules=($(gcloud compute firewall-rules list --regexp 'k8s-fw-.*' --uri))
 
-gcloud compute instances delete -q "${etcd_instances[@]}" 'kube-master-0'
+gcloud compute instances delete -q 'kube-master-1'
 
 gcloud compute instance-groups unmanaged delete -q 'kube-master-group'
 
