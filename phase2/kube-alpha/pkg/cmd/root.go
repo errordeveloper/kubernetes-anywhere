@@ -40,14 +40,14 @@ type Config struct {
 // TODO log everything really nicely, so that the user can see what happened.
 
 func init() {
-	RootCmd.AddCommand(NewCmdInit(os.Stdout))
-	RootCmd.AddCommand(NewCmdJoin(os.Stdout))
-	RootCmd.AddCommand(NewCmdToolbox(os.Stdout))
-
 	config := Config{}
+	RootCmd.AddCommand(NewCmdInit(os.Stdout, &config))
+	RootCmd.AddCommand(NewCmdJoin(os.Stdout, &config))
+	RootCmd.AddCommand(NewCmdToolbox(os.Stdout, &config))
+
 	RootCmd.PersistentFlags().StringVarP(&config.disco, "disco", "", "weave",
 		`which service discovery mechanism to use for kubernetes
-bootstrap (choose from "weave", "dns", "rendezvous",
+bootstrap (choose from "weave", "dns", "token",
 "consul", default: "weave").`)
 	RootCmd.PersistentFlags().StringVarP(&config.net, "net", "", "weave",
 		`which pod network to create (choose from "weave",
@@ -56,7 +56,7 @@ bootstrap (choose from "weave", "dns", "rendezvous",
 		`certificate provider, default "auto" to ask the
 discovery mechanism to bootstrap certs for you when
 you "init" (chose from "vault", "amazon-cm", "containers",
-"rendezvous").`)
+"token").`)
 	RootCmd.PersistentFlags().BoolVar(&config.dryRun,
 		"dry-run", false, "Dry run. Useful for understanding what would be done.")
 

@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCmdToolbox(out io.Writer) *cobra.Command {
+func NewCmdToolbox(out io.Writer, config *Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "toolbox",
 		Short: "Give me a shell where 'kubectl' is available",
