@@ -31,10 +31,10 @@ be created for you.
 }
 
 type Config struct {
-	disco  *string
-	net    *string
-	pki    *string
-	dryRun *bool
+	disco  string
+	net    string
+	pki    string
+	dryRun bool
 }
 
 // TODO log everything really nicely, so that the user can see what happened.
@@ -45,19 +45,19 @@ func init() {
 	RootCmd.AddCommand(NewCmdToolbox(os.Stdout))
 
 	config := Config{}
-	RootCmd.PersistentFlags().StringVarP(config.disco, "disco", "", "weave",
+	RootCmd.PersistentFlags().StringVarP(&config.disco, "disco", "", "weave",
 		`which service discovery mechanism to use for kubernetes
 bootstrap (choose from "weave", "dns", "rendezvous",
 "consul", default: "weave").`)
-	RootCmd.PersistentFlags().StringVarP(config.net, "net", "", "weave",
+	RootCmd.PersistentFlags().StringVarP(&config.net, "net", "", "weave",
 		`which pod network to create (choose from "weave",
 "flannel", default: "weave")`)
-	RootCmd.PersistentFlags().StringVarP(config.pki, "pki", "", "auto",
+	RootCmd.PersistentFlags().StringVarP(&config.pki, "pki", "", "auto",
 		`certificate provider, default "auto" to ask the
 discovery mechanism to bootstrap certs for you when
 you "init" (chose from "vault", "amazon-cm", "containers",
 "rendezvous").`)
-	RootCmd.PersistentFlags().BoolVar(config.dryRun,
+	RootCmd.PersistentFlags().BoolVar(&config.dryRun,
 		"dry-run", false, "Dry run. Useful for understanding what would be done.")
 
 }
