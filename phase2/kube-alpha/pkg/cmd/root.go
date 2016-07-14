@@ -30,24 +30,32 @@ be created for you.
 	},
 }
 
+type Config struct {
+	disco  *string
+	net    *string
+	pki    *string
+	dryRun *bool
+}
+
 func init() {
 	RootCmd.AddCommand(NewCmdInit(os.Stdout))
 	RootCmd.AddCommand(NewCmdJoin(os.Stdout))
 	RootCmd.AddCommand(NewCmdToolbox(os.Stdout))
 
-	var disco string
-	var net string
-	var pki string
-	RootCmd.PersistentFlags().StringVarP(&disco, "disco", "", "weave",
+	config := Config{}
+	RootCmd.PersistentFlags().StringVarP(config.disco, "disco", "", "weave",
 		`which service discovery mechanism to use for kubernetes
 bootstrap (choose from "weave", "dns", "rendezvous",
 "consul", default: "weave").`)
-	RootCmd.PersistentFlags().StringVarP(&net, "net", "", "weave",
+	RootCmd.PersistentFlags().StringVarP(config.net, "net", "", "weave",
 		`which pod network to create (choose from "weave",
 "flannel", default: "weave")`)
-	RootCmd.PersistentFlags().StringVarP(&pki, "pki", "", "auto",
+	RootCmd.PersistentFlags().StringVarP(config.pki, "pki", "", "auto",
 		`certificate provider, default "auto" to ask the
 discovery mechanism to bootstrap certs for you when
 you "init" (chose from "vault", "amazon-cm", "containers",
 "rendezvous").`)
+	RootCmd.PersistentFlags().BoolVar(config.dryRun,
+		"dry-run", false, "Dry run. Useful for understanding what would be done.")
+
 }
