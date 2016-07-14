@@ -22,7 +22,8 @@ func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
 				} else if config.disco == "consul" {
 					p2pDisco = disco.NewConsulDisco()
 				}
-				p2pDisco.Init()
+				// TODO get the actual list out of the cmdline args
+				p2pDisco.Bootstrap([]disco.IPv4Address{})
 			} else if config.disco == "token" {
 				tokenDisco := disco.NewTokenDisco()
 				token := tokenDisco.Init()

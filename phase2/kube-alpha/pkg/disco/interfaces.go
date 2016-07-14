@@ -9,10 +9,7 @@ package disco
 type IPv4Address string
 
 type P2PDiscovery interface {
-	// runs on the host where `init` is called
-	Init()
 	// runs at the very beginning, and on every host
-	// apart from the first one.
 	// every host is given the address of at
 	// least one other host on the real network
 	Bootstrap(peers []IPv4Address)
