@@ -53,6 +53,9 @@ func (*WeaveDisco) Bootstrap(peers []string) {
 	args = append(args, peers...)
 	logCommand("0003_bootstrap_launch_weave",
 		"/usr/local/bin/weave", args...)
+	hostname, _ := os.Hostname()
+	logCommand("0003_bootstrap_weave_expose",
+		"/usr/local/bin/weave", "expose", "-h", hostname+".weave.local")
 }
 
 func NewWeaveDisco() P2PDiscovery {

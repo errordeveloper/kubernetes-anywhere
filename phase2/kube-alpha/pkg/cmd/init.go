@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/disco"
 	"github.com/spf13/cobra"
@@ -22,8 +23,7 @@ func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
 				} else if config.disco == "consul" {
 					p2pDisco = disco.NewConsulDisco()
 				}
-				// TODO get the actual list out of the cmdline args
-				p2pDisco.Bootstrap([]string{})
+				p2pDisco.Bootstrap(strings.Split(args[0], ","))
 			} else if config.disco == "token" {
 				tokenDisco := disco.NewTokenDisco()
 				token := tokenDisco.Init()
