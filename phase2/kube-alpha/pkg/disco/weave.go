@@ -26,11 +26,14 @@ func logCommand(logname, cmd string, args ...string) {
 	// TODO don't create a log instance every time this gets run
 	thisLog := log.New(getLogFile(logname), "", 0)
 	thisLog.Printf("Starting to run %s %s...", cmd, args)
+	log.Printf("Starting to run %s %s...", cmd, args)
 	output, err := exec.Command(cmd, args...).CombinedOutput()
 	if err != nil {
 		thisLog.Printf("Execution failed with %s", err)
+		log.Printf("Execution failed with %s", err)
 	} else {
 		thisLog.Printf("Execution succeeded")
+		log.Printf("Execution succeeded")
 	}
 	thisLog.Printf("OUTPUT FOLLOWS\n==============")
 	thisLog.Print(string(output))
