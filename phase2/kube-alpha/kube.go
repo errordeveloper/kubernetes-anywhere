@@ -3,17 +3,17 @@ package main
 import (
 	"log"
 	"os"
-	"os/user"
+	"os/exec"
 
 	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/cmd"
 )
 
 func main() {
-	user, err := user.Current()
+	user, err := exec.Command("whoami").Output()
 	if err != nil {
-		log.Fatalf("Unable to find which user we're running as.", err)
+		log.Fatalf("Unable to find which user we're running as: %s", err)
 	}
-	if user.Uid != "0" {
+	if string(user) != "root\n" {
 		log.Fatalf("Please run me as root!\n")
 	}
 	if err := cmd.RootCmd.Execute(); err != nil {
