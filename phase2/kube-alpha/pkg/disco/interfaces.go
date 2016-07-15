@@ -6,13 +6,11 @@ package disco
 
  */
 
-type IPv4Address string
-
 type P2PDiscovery interface {
 	// runs at the very beginning, and on every host
 	// every host is given the address of at
 	// least one other host on the real network
-	Bootstrap(peers []IPv4Address)
+	Bootstrap(peers []string)
 }
 
 type TokenDiscovery interface {
