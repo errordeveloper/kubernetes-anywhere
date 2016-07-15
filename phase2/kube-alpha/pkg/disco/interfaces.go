@@ -6,6 +6,8 @@ package disco
 
  */
 
+// TODO(mike) disco should output a kube config file (kubectl reads it)
+
 type P2PDiscovery interface {
 	// runs at the very beginning, and on every host
 	// every host is given the address of at
@@ -32,6 +34,22 @@ CNI
 * bootstrap the network (if necessary)
 
 */
+
+// TODO(mike) or just deployed as we deploy add-ons?
+// apply network add-on, kube-proxy, etc...
+
+/*
+// idea from mike
+// This struct is used to parametrize a well known "basic addon"
+// template and is applied when the first master is created.
+type AddonsConfig struct {
+	PodNetwork      string
+	KubeDnsReplicas int
+	HeapsterBackend string
+	KubeProxy       KubeProxyConfig
+}
+*/
+
 type PodNetwork interface {
 	// get a docker image with the required binaries and config files
 	// will be run before kubelet is started
