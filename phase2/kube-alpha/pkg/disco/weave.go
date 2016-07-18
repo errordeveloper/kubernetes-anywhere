@@ -38,7 +38,7 @@ func logCommand(logname, cmd string, args ...string) {
 	thisLog.Printf("OUTPUT FOLLOWS\n==============")
 	thisLog.Print(string(output))
 	if err != nil {
-		os.Stderr.Printf("Command failed, what to do?\nCommand: %s %s\nError: %s\nOutput: %s\n", cmd, args, output, err)
+		os.Stderr.Write([]byte(fmt.Sprintf("Command failed, what to do?\nCommand: %s %s\nError: %s\nOutput: %s\n", cmd, args, output, err)))
 		os.Exit(-1)
 	}
 }
