@@ -64,7 +64,7 @@ complete...
 	// TODO maybe this belongs in a different interface?
 	//
 	// we only do this on the first node for now
-	w.setupCertificateRepo(true, false)
+	w.initPKI()
 }
 
 func (w *WeaveDisco) Join(peers []string) {
@@ -100,51 +100,55 @@ func (w *WeaveDisco) launchWeave(peers []string) {
 		"/usr/local/bin/weave", "expose", "-h", hostname+".weave.local")
 }
 
-func (w *WeaveDisco) setupCertificateRepo(join bool, master bool) {
+// TODO we can probably implement toobox helper instead of having all of this in here
+const loadFromTmpPkiServer = "set -o pipefail ; until docker --host=unix:///var/run/weave/weave.sock run --rm=true weaveworks/kubernetes-anywhere:toolbox curl --silent --fail tmp-pki-server/%s.dkr | docker load ; do sleep 1 ; done"
+
+func (w *WeaveDisco) initPKI() {
 	logCommand("0005_setup_pki",
 		"docker", "run", "-v", "/var/run/docker.sock:/docker.sock",
 		"weaveworks/kubernetes-anywhere:toolbox", "create-pki-containers",
 	)
 
-	var loadFromTmpPkiServer = "set -o pipefail ; until docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl --silent --fail tmp-pki-server/%s.dkr | docker load ; do sleep 1 ; done"
+	logCommand("0005_create_tmp_pki_dir", "mkdir", "-p", "/tmp/pki")
+	logCommand("0005_dump_toolbox_image",
+		"docker", "save", "-o", "/tmp/pki/toolbox.dkr", "kubernetes-anywhere:toolbox-pki")
+	logCommand("0005_dump_scheduler_image",
+		"docker", "save", "-o", "/tmp/pki/scheduler.dkr", "kubernetes-anywhere:scheduler-pki")
+	logCommand("0005_dump_controller_manager_image",
+		"docker", "save", "-o", "/tmp/pki/controller-manager.dkr", "kubernetes-anywhere:controller-manager-pki")
+	logCommand("0005_dump_kubelet_image",
+		"docker", "save", "-o", "/tmp/pki/kubelet.dkr", "kubernetes-anywhere:kubelet-pki")
+	logCommand("0005_dump_proxy_image",
+		"docker", "save", "-o", "/tmp/pki/proxy.dkr", "kubernetes-anywhere:proxy-pki")
+	logCommand("0005_dump_apiserver_image", "docker", "save", "-o", "/tmp/pki/apiserver.dkr", "kubernetes-anywhere:apiserver-pki")
+	logCommand("0005_allow_nginx_read_access", "chmod", "o+r", "-R", "/tmp/pki")
+	logCommand("0005_start_nginx",
+		"docker", "--host=unix:///var/run/weave/weave.sock", "run",
+		"--name=tmp-pki-server", "--volume=/tmp/pki:/usr/share/nginx/html:ro", "--detach=true", "nginx")
+	logCommand("0005_init_toolbox_pki_container", "docker", "run", "--name=kube-toolbox-pki", "kubernetes-anywhere:toolbox-pki")
+	logCommand("0005_init_apiserver_pki_container", "docker", "run", "--name=kube-apiserver-pki", "kubernetes-anywhere:apiserver-pki")
+	logCommand("0005_init_scheduler_pki_container", "docker", "run", "--name=kube-scheduler-pki", "kubernetes-anywhere:scheduler-pki")
+	logCommand("0005_init_controller_manager_pki_container", "docker", "run", "--name=kube-controller-manager-pki", "kubernetes-anywhere:controller-manager-pki")
+}
 
-	if master && !join {
-		logCommand("0005_create_tmp_pki_dir",
-			"mkdir", "-p", "/tmp/pki")
-		logCommand("0005_dump_toolbox_image",
-			"docker", "save", "-o", "/tmp/pki/toolbox.dkr", "kubernetes-anywhere:toolbox-pki")
-		logCommand("0005_dump_scheduler_image",
-			"docker", "save", "-o", "/tmp/pki/scheduler.dkr", "kubernetes-anywhere:scheduler-pki")
-		logCommand("0005_dump_controller_manager_image",
-			"docker", "save", "-o", "/tmp/pki/controller-manager.dkr", "kubernetes-anywhere:controller-manager-pki")
-		logCommand("0005_dump_kubelet_image",
-			"docker", "save", "-o", "/tmp/pki/kubelet.dkr", "kubernetes-anywhere:kubelet-pki")
-		logCommand("0005_dump_proxy_image",
-			"docker", "save", "-o", "/tmp/pki/proxy.dkr", "kubernetes-anywhere:proxy-pki")
-		logCommand("0005_dump_apiserver_image",
-			"docker", "save", "-o", "/tmp/pki/apiserver.dkr", "kubernetes-anywhere:apiserver-pki")
-		logCommand("0005_allow_nginx_read_access",
-			"chmod", "o+r", "-R", "/tmp/pki")
-		logCommand("0005_start_nginx",
-			"docker", "--host=unix:///var/run/weave/weave.sock", "run", "--name=tmp-pki-server", "--volume=/tmp/pki:/usr/share/nginx/html:ro", "--detach=true", "nginx")
-	} else if master && join {
-		logCommand("0005_load_toolbox_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "toolbox"))
-		logCommand("0005_load_apiserver_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "apiserver"))
-		logCommand("0005_load_scheduler_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "scheduler"))
-		logCommand("0005_load_controller_manager_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "controller-manager"))
-		logCommand("0005_init_toolbox_pki_container", "docker", "run", "--name=kube-toolbox-pki", "kubernetes-anywhere:toolbox-pki")
-		logCommand("0005_init_apiserver_pki_container", "docker", "run", "--name=kube-apiserver-pki", "kubernetes-anywhere:apiserver-pki")
-		logCommand("0005_init_scheduler_pki_container", "docker", "run", "--name=kube-scheduler-pki", "kubernetes-anywhere:scheduler-pki")
-		logCommand("0005_init_controller_manager_pki_container", "docker", "run", "--name=kube-controller-manager-pki", "kubernetes-anywhere:controller-manager-pki")
+func (w *WeaveDisco) doMasterPKI() {
+	logCommand("0005_load_toolbox_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "toolbox"))
+	logCommand("0005_load_apiserver_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "apiserver"))
+	logCommand("0005_load_scheduler_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "scheduler"))
+	logCommand("0005_load_controller_manager_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "controller-manager"))
+	logCommand("0005_init_toolbox_pki_container", "docker", "run", "--name=kube-toolbox-pki", "kubernetes-anywhere:toolbox-pki")
+	logCommand("0005_init_apiserver_pki_container", "docker", "run", "--name=kube-apiserver-pki", "kubernetes-anywhere:apiserver-pki")
+	logCommand("0005_init_scheduler_pki_container", "docker", "run", "--name=kube-scheduler-pki", "kubernetes-anywhere:scheduler-pki")
+	logCommand("0005_init_controller_manager_pki_container", "docker", "run", "--name=kube-controller-manager-pki", "kubernetes-anywhere:controller-manager-pki")
+}
 
-	} else {
-		logCommand("0005_load_toolbox_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "toolbox"))
-		logCommand("0005_load_kubelet_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "kubelet"))
-		logCommand("0005_load_proxy_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "proxy"))
-		logCommand("0005_init_toolbox_pki_container", "docker", "run", "--name=kube-toolbox-pki", "kubernetes-anywhere:toolbox-pki")
-		logCommand("0005_init_proxy_pki_container", "docker", "run", "--name=kube-proxy-pki", "kubernetes-anywhere:kubelet-pki")
-		logCommand("0005_init_kubelet_pki_container", "docker", "run", "--name=kubelet-pki", "kubernetes-anywhere:proxy-pki")
-	}
+func (w *WeaveDisco) doWorkerPKI() {
+	logCommand("0005_load_toolbox_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "toolbox"))
+	logCommand("0005_load_kubelet_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "kubelet"))
+	logCommand("0005_load_proxy_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "proxy"))
+	logCommand("0005_init_toolbox_pki_container", "docker", "run", "--name=kube-toolbox-pki", "kubernetes-anywhere:toolbox-pki")
+	logCommand("0005_init_proxy_pki_container", "docker", "run", "--name=kube-proxy-pki", "kubernetes-anywhere:kubelet-pki")
+	logCommand("0005_init_kubelet_pki_container", "docker", "run", "--name=kubelet-pki", "kubernetes-anywhere:proxy-pki")
 }
 
 func NewWeaveDisco() P2PDiscovery {
