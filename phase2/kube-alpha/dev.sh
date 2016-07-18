@@ -13,6 +13,11 @@ if [ "$1" = "auto" ]; then
     docker-machine ssh vm2 sudo /tmp/kube join "${IP1},${IP2}"
     wait "$pid" 2>/dev/null
 else
-    echo "Log into vm1 with 'docker-machine ssh vm1' and run 'sudo /tmp/kube init ${IP1},${IP2}'"
-    echo "Also, log into vm2 with 'docker-machine ssh vm2' and run 'sudo /tmp/kube join ${IP1},${IP2}'"
+    echo "Log into vm1 with:"
+    echo "    docker-machine ssh vm1"
+    echo "Then run:"
+    echo "    sudo /tmp/kube init ${IP1},${IP2}'"
+    echo
+    echo "To log into vm2, use:"
+    echo "    docker-machine ssh vm2"
 fi
