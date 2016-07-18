@@ -40,20 +40,11 @@ func logCommand(logname, cmd string, args ...string) {
 	}
 }
 
-func (*WeaveDisco) Bootstrap(peers []string) {
-	// weave launch $peers
-	// TODO retry_until_success, probably
-	fmt.Println("================================")
-	fmt.Println("  Kubernetes cluster bootstrap  ")
-	fmt.Println("================================")
-	fmt.Println("Installing bootstrap network...")
-	logCommand("0001_bootstrap_install_weave",
-		"curl", "-L", "git.io/weave", "-o", "/usr/local/bin/weave")
-	logCommand("0002_bootstrap_chmod_weave",
-		"chmod", "+x", "/usr/local/bin/weave")
-	log.Println("done!")
-	args := []string{"launch"}
-	args = append(args, peers...)
+// TODO retry_until_success, probably
+
+func (w *WeaveDisco) Init(peers []string) {
+	w.welcomeText()
+	w.installNetwork()
 	fmt.Println(`
 Bootstrapping will now block until all servers join the
 network.  Please run:
@@ -63,13 +54,43 @@ network.  Please run:
 On all the other servers you want in your initial cluster,
 giving the IP addresses of all the servers, and then wait
 for up to 2 minutes for network bootstrapping to
-complete...`)
+complete...
+`)
+	w.launchWeave(peers)
+	fmt.Println("Bootstrap network successfully created!")
+}
+
+func (w *WeaveDisco) Join(peers []string) {
+	w.welcomeText()
+	w.installNetwork()
+	fmt.Println("Joining bootstrap network...")
+	w.launchWeave(peers)
+	fmt.Println("done!")
+}
+
+func (w *WeaveDisco) welcomeText() {
+	fmt.Println("================================")
+	fmt.Println("  Kubernetes cluster bootstrap  ")
+	fmt.Println("================================")
+}
+
+func (w *WeaveDisco) installNetwork() {
+	fmt.Println("Installing bootstrap network...")
+	logCommand("0001_bootstrap_install_weave",
+		"curl", "-L", "git.io/weave", "-o", "/usr/local/bin/weave")
+	logCommand("0002_bootstrap_chmod_weave",
+		"chmod", "+x", "/usr/local/bin/weave")
+	log.Println("done!")
+}
+
+func (w *WeaveDisco) launchWeave(peers []string) {
+	args := []string{"launch"}
+	args = append(args, peers...)
 	logCommand("0003_bootstrap_launch_weave",
 		"/usr/local/bin/weave", args...)
 	hostname, _ := os.Hostname()
 	logCommand("0004_bootstrap_weave_expose",
 		"/usr/local/bin/weave", "expose", "-h", hostname+".weave.local")
-	fmt.Println("Bootstrap network successfully created!")
 }
 
 func NewWeaveDisco() P2PDiscovery {

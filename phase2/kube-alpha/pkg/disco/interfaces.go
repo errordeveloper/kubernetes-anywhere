@@ -12,7 +12,8 @@ type P2PDiscovery interface {
 	// runs at the very beginning, and on every host
 	// every host is given the address of at
 	// least one other host on the real network
-	Bootstrap(peers []string)
+	Init(peers []string)
+	Join(peers []string)
 }
 
 type TokenDiscovery interface {

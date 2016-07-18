@@ -14,6 +14,7 @@ func NewCmdJoin(out io.Writer, config *Config) *cobra.Command {
 		Use:   "join",
 		Short: "Run this on other servers to join an existing cluster.",
 		Run: func(cmd *cobra.Command, args []string) {
+			// XXX remove duplication
 			// Maybe there's a nicer way of doing this
 			if config.disco == "weave" || config.disco == "consul" {
 				// these are p2p discos
@@ -23,8 +24,9 @@ func NewCmdJoin(out io.Writer, config *Config) *cobra.Command {
 				} else if config.disco == "consul" {
 					p2pDisco = disco.NewConsulDisco()
 				}
-				p2pDisco.Bootstrap(strings.Split(args[0], ","))
+				p2pDisco.Join(strings.Split(args[0], ","))
 			} else if config.disco == "token" {
+				// TODO should be different in 'join' case
 				tokenDisco := disco.NewTokenDisco()
 				token := tokenDisco.Init()
 				fmt.Println("Your token is:", token)
