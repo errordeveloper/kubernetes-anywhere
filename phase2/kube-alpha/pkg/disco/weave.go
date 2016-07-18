@@ -73,6 +73,7 @@ func (w *WeaveDisco) Join(peers []string) {
 	fmt.Println("Joining bootstrap network...")
 	w.launchWeave(peers)
 	fmt.Println("done!")
+	w.doWorkerPKI()
 }
 
 func (w *WeaveDisco) welcomeText() {
