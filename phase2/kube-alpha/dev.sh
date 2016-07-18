@@ -16,10 +16,11 @@ else
     echo
     echo "Log into vm1 with:"
     echo "    docker-machine ssh vm1"
-    echo "Then run:"
-    echo "    sudo /tmp/kube init ${IP1},${IP2}'"
     echo
     echo "In another terminal, log into vm2:"
     echo "    docker-machine ssh vm2"
+    echo
+    echo "On vm1, run:"
+    echo "    sudo /tmp/kube init ${IP1},${IP2}"
     echo
 fi

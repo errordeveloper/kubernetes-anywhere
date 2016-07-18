@@ -55,9 +55,14 @@ func (*WeaveDisco) Bootstrap(peers []string) {
 	args := []string{"launch"}
 	args = append(args, peers...)
 	fmt.Println(`
-Bootstrapping will now block until all servers join the bootstrap network.
-Please run 'kube join <ip1>,<...>,<ipN>' on all the servers you want in your
-initial cluter, and then wait for up to 2 minutes for bootstrapping to
+Bootstrapping will now block until all servers join the
+network.  Please run:
+
+    kube join <ip1>,<...>,<ipN>
+
+On all the other servers you want in your initial cluster,
+giving the IP addresses of all the servers, and then wait
+for up to 2 minutes for network bootstrapping to
 complete...`)
 	logCommand("0003_bootstrap_launch_weave",
 		"/usr/local/bin/weave", args...)
