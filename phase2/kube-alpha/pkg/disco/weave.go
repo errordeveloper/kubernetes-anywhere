@@ -54,6 +54,7 @@ func (*WeaveDisco) Bootstrap(peers []string) {
 	logCommand("0003_bootstrap_launch_weave",
 		"/usr/local/bin/weave", args...)
 	hostname, _ := os.Hostname()
+	log.Println("Waiting for cluster memers to join...", peers)
 	logCommand("0003_bootstrap_weave_expose",
 		"/usr/local/bin/weave", "expose", "-h", hostname+".weave.local")
 }
