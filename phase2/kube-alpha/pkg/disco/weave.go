@@ -21,6 +21,9 @@ func getLogFile(logfile string) *os.File {
 	return f
 }
 
+// TODO - support multi master
+// TODO - take arguments (master, worker, or master-and-worker)
+
 // TODO support retries
 func logCommand(logname, cmd string, args ...string) {
 	// TODO don't create a log instance every time this gets run
@@ -58,6 +61,10 @@ complete...
 `)
 	w.launchWeave(peers)
 	fmt.Println("Bootstrap network successfully created!")
+	// TODO maybe this belongs in a different interface?
+	//
+	// we only do this on the first node for now
+	w.setupCertificateRepo()
 }
 
 func (w *WeaveDisco) Join(peers []string) {
@@ -91,6 +98,14 @@ func (w *WeaveDisco) launchWeave(peers []string) {
 	hostname, _ := os.Hostname()
 	logCommand("0004_bootstrap_weave_expose",
 		"/usr/local/bin/weave", "expose", "-h", hostname+".weave.local")
+}
+
+func (w *WeaveDisco) setupCertificateRepo() {
+	logCommand("0005_setup_pki",
+		"docker", "run", "-v", "/var/run/docker.sock:/docker.sock",
+		"weaveworks/kubernetes-anywhere:toolbox", "create-pki-containers",
+	)
+	// docker run --name some-nginx -v /some/content:/usr/share/nginx/html:ro -d nginx
 }
 
 func NewWeaveDisco() P2PDiscovery {

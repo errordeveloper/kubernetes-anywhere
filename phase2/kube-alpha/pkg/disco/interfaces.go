@@ -8,6 +8,9 @@ package disco
 
 // TODO(mike) disco should output a kube config file (kubectl reads it)
 
+// TODO: P2PDiscoveryWithToken - could use weave net crypto to make a secure
+// little bubble for e.g. PKI repo
+
 type P2PDiscovery interface {
 	// runs at the very beginning, and on every host
 	// every host is given the address of at
