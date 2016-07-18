@@ -154,6 +154,7 @@ func (w *WeaveDisco) doWorkerPKI() {
 }
 
 func (w *WeaveDisco) bootMaster() {
+	// TODO in HA setting we will need to figure which etcdX we are starting...
 	logCommand("0020_start_etcd",
 		"docker", "--host=unix:///var/run/weave/weave.sock", "run", "--detach=true", "--name=etcd1", "weaveworks/kubernetes-anywhere:etcd")
 	logCommand("0021_start_apiserver",
