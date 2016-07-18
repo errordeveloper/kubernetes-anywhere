@@ -105,7 +105,36 @@ func (w *WeaveDisco) setupCertificateRepo() {
 		"docker", "run", "-v", "/var/run/docker.sock:/docker.sock",
 		"weaveworks/kubernetes-anywhere:toolbox", "create-pki-containers",
 	)
-	// docker run --name some-nginx -v /some/content:/usr/share/nginx/html:ro -d nginx
+	/*
+		* on first master
+			mkdir /tmp/pki
+			docker save -i /tmp/pki/toolbox.dkr kubernetes-anywhere:toolbox-pki
+			docker save -i /tmp/pki/scheduler.dkr kubernetes-anywhere:scheduler-pki
+			docker save -i /tmp/pki/controller-manager.dkr kubernetes-anywhere:controller-manager-pki
+			docker save -i /tmp/pki/kubelet.dkr kubernetes-anywhere:kubelet-pki
+			docker save -i /tmp/pki/proxy.dkr kubernetes-anywhere:proxy-pki
+			docker save -i /tmp/pki/apiserver.dkr kubernetes-anywhere:apiserver-pki
+			chmod o+r -R /tmp/pki
+			docker --host=unix:///var/run/weave/weave.sock run --name=tmp-pki-server --volume=/tmp/pki:/usr/share/nginx/html:ro --detach=true nginx
+
+		* on other masters
+			docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl tmp-pki-server/toolbox.dkr | docker load
+			docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl tmp-pki-server/apiserver.dkr | docker load
+			docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl tmp-pki-server/scheduler.dkr | docker load
+			docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl tmp-pki-server/controller-manager.dkr | docker load
+			docker run --name=kube-toolbox-pki weaveworks/kubernetes-anywhere:toolbox-pki
+			docker run --name=kube-apiserver-pki weaveworks/kubernetes-anywhere:apiserver-pki
+			docker run --name=kube-scheduler-pki weaveworks/kubernetes-anywhere:scheduler-pki
+			docker run --name=kube-controller-manager-pki weaveworks/kubernetes-anywhere:controller-manager-pki
+
+		* on nodes
+			docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl tmp-pki-server/toolbox.dkr | docker load
+			docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl tmp-pki-server/kubelet.dkr | docker load
+			docker --host=unix:///var/run/weave/weave.sock run weaveworks/kubernetes-anywhere:toolbox curl tmp-pki-server/proxy.dkr | docker load
+			docker run --name=kube-toolbox-pki weaveworks/kubernetes-anywhere:toolbox-pki
+			docker run --name=kube-proxy-pki weaveworks/kubernetes-anywhere:kubelet-pki
+			docker run --name=kubelet-pki weaveworks/kubernetes-anywhere:proxy-pki
+	*/
 }
 
 func NewWeaveDisco() P2PDiscovery {
