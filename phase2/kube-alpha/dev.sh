@@ -13,6 +13,7 @@ if [ "$1" = "auto" ]; then
     docker-machine ssh vm2 sudo /tmp/kube join "${IP1},${IP2}"
     wait "$pid" 2>/dev/null
 else
+    echo
     echo "Log into vm1 with:"
     echo "    docker-machine ssh vm1"
     echo "Then run:"
@@ -20,4 +21,5 @@ else
     echo
     echo "To log into vm2, use:"
     echo "    docker-machine ssh vm2"
+    echo
 fi
