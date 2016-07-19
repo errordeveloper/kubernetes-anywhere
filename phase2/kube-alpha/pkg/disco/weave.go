@@ -23,6 +23,8 @@ func getLogFile(logfile string) *os.File {
 
 // TODO - support multi master
 // TODO - take arguments (master, worker, or master-and-worker)
+// TODO - ensure all calls are containerised and use Docker client
+// TODO - handle reboots
 
 // TODO support retries
 func logCommand(logname, cmd string, args ...string) {
