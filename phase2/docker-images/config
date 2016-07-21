@@ -3,7 +3,7 @@ git_repo="https://github.com/weaveworks/weave-kubernetes-anywhere"
 git_rev=$(git rev-parse @)
 git_rev_short=$(git rev-parse --short @)
 
-default_kubernetes_release="v1.2.4"
+default_kubernetes_release="v1.2.6"
 
 kubernetes_release=${1:-"${default_kubernetes_release}"}
 kubernetes_release_base="${kubernetes_release/-[a-z]*\.[0-9]/}"

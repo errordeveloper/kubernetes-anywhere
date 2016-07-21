@@ -17,73 +17,82 @@
 KUBERNETES_ANYWHERE_TOOLBOX_IMAGE=${KUBERNETES_ANYWHERE_TOOLBOX_IMAGE:-'weaveworks/kubernetes-anywhere:toolbox'}
 
 mount_make_rshared() {
-  echo "Calling \`mount --make-rshared /\` to ensure \`kubelet-volumes\` is functional"
+  kubelet_dir="$1"
+  echo "Calling \`mount --bind "${kubelet_dir}" "${kubelet_dir}" && mount --make-rshared "${kubelet_dir}"\` to ensure \`kubelet-volumes\` is functional"
   docker run \
+    --rm="true" \
     --pid="host" \
     --privileged="true" \
-    "${KUBERNETES_ANYWHERE_TOOLBOX_IMAGE}" nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared /
+    "${KUBERNETES_ANYWHERE_TOOLBOX_IMAGE}" nsenter --mount=/proc/1/ns/mnt -- mount --bind "${kubelet_dir}" "${kubelet_dir}"
+  docker run \
+    --rm="true" \
+    --pid="host" \
+    --privileged="true" \
+    "${KUBERNETES_ANYWHERE_TOOLBOX_IMAGE}" nsenter --mount=/proc/1/ns/mnt -- mount --make-rshared "${kubelet_dir}"
 }
+
+volumes=(
+  "/:/rootfs:ro"
+  "/sys:/sys:ro"
+  "/dev:/dev"
+  "/var/run:/var/run:rw"
+)
+
+def_docker_root="/var/lib/docker"
+def_kubelet_root="/var/lib/kubelet"
+def_kubelet_logs="/var/log/containers"
+
+if [ -d /rootfs/etc ] && [ -f /rootfs/etc/os-release ]
+then
+  case "$(eval "$(cat "/rootfs/etc/os-release")" ; echo "${ID}" )" in
+    boot2docker)
+      docker_root="/mnt/sda1/${def_docker_root}"
+      kubelet_root="/mnt/sda1/${def_kubelet_root}"
+      kubelet_logs="/mnt/sda1/${def_kubelet_logs}"
+      mkdir -p "/rootfs/${kubelet_root}"
+      mkdir -p "/rootfs/${kubelet_logs}"
+      ln -sf "${kubelet_root}" "/rootfs/${def_kubelet_root}"
+      ln -sf "${kubelet_logs}" "/rootfs/${def_kubelet_logs}"
+      volumes+=(
+        "${docker_root}:${docker_root}:rw"
+        "${def_docker_root}:${def_docker_root}:rw"
+        "${kubelet_root}:${def_kubelet_root}:rw,rshared"
+        "${kubelet_logs}:${def_kubelet_logs}:rw"
+      )
+      kubelet_host_dir="${kubelet_root}"
+      ;;
+    *)
+      mkdir -p "/rootfs/${kubelet_root}"
+      mkdir -p "/rootfs/${kubelet_logs}"
+      volumes+=(
+        "${def_docker_root}/:${def_docker_root}:rw"
+        "${def_kubelet_root}:${def_kubelet_root}:rw,rshared"
+        "${def_kubelet_logs}:${def_kubelet_logs}:rw"
+      )
+      kubelet_host_dir="${def_kubelet_root}"
+      ;;
+  esac
+else
+  echo "Root filesystem from the host has to be mounted (please use \`--volume=\"/:/rootfs\"\`)."
+  exit 1
+fi
+if [ "${USE_CNI}" = "yes" ]
+then
+  docker_sock_vol="/var/run/docker.sock:/docker.sock"
+else
+  docker_sock_vol="/var/run/weave/weave.sock:/docker.sock"
+fi
+
+volumes+=("${docker_sock_vol}")
 
 if [[ $(docker inspect --format='{{.State.Status}}' kubelet-volumes 2> /dev/null) = 'created' ]]
 then
   echo "Docker container \`kubelet-volume\` aleady exists"
-  mount_make_rshared
+  mount_make_rshared "${kubelet_host_dir}"
   exit
 else
 
-  volumes=(
-    "/:/rootfs:ro"
-    "/sys:/sys:ro"
-    "/dev:/dev"
-    "/var/run:/var/run:rw"
-  )
-
-  def_docker_root="/var/lib/docker"
-  def_kubelet_root="/var/lib/kubelet"
-  def_kubelet_logs="/var/log/containers"
-
-  if [ -d /rootfs/etc ] && [ -f /rootfs/etc/os-release ]
-  then
-    case "$(eval "$(cat "/rootfs/etc/os-release")" ; echo "${ID}" )" in
-      boot2docker)
-        docker_root="/mnt/sda1/${def_docker_root}"
-        kubelet_root="/mnt/sda1/${def_kubelet_root}"
-        kubelet_logs="/mnt/sda1/${def_kubelet_logs}"
-        mkdir -p "/rootfs/${kubelet_root}"
-        mkdir -p "/rootfs/${kubelet_logs}"
-        ln -sf "${kubelet_root}" "/rootfs/${def_kubelet_root}"
-        ln -sf "${kubelet_logs}" "/rootfs/${def_kubelet_logs}"
-        volumes+=(
-          "${docker_root}:${docker_root}:rw"
-          "${def_docker_root}:${def_docker_root}:rw"
-          "${kubelet_root}:${def_kubelet_root}:rw,rshared"
-          "${kubelet_logs}:${def_kubelet_logs}:rw"
-        )
-        ;;
-      *)
-        mkdir -p "/rootfs/${kubelet_root}"
-        mkdir -p "/rootfs/${kubelet_logs}"
-        volumes+=(
-          "${def_docker_root}/:${def_docker_root}:rw"
-          "${def_kubelet_root}:${def_kubelet_root}:rw,rshared"
-          "${def_kubelet_logs}:${def_kubelet_logs}:rw"
-        )
-        ;;
-    esac
-  else
-    echo "Root filesystem from the host has to be mounted (please use \`--volume=\"/:/rootfs\"\`)."
-    exit 1
-  fi
-  if [ "${USE_CNI}" = "yes" ]
-  then
-    docker_sock_vol="/var/run/docker.sock:/docker.sock"
-  else
-    docker_sock_vol="/var/run/weave/weave.sock:/docker.sock"
-  fi
-
-  volumes+=("${docker_sock_vol}")
-
-  mount_make_rshared
+  mount_make_rshared "${kubelet_host_dir}"
 
   volume_args=()
   for v in "${volumes[@]}" ; do volume_args+=("--volume=\"${v}\"") ; done

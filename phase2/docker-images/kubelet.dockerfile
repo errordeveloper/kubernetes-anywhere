@@ -29,6 +29,6 @@ ADD kubelet-cni/net.d /etc/cni/net.d
 
 ENV USE_CNI="yes"
 ENV DOCKER_HOST="unix:///docker.sock"
-ENV WEAVE_VERSION=1.5.2 WEAVE_VERSION_DEFAULT=1.5.2
+ENV WEAVE_VERSION=1.6.0 WEAVE_VERSION_DEFAULT=1.6.0
 
 CMD [ "/kubelet-anywhere" ]
