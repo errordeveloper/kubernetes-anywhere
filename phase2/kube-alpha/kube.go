@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+    // TODO: add pre-flight checks?
 	user, err := exec.Command("whoami").Output()
 	if err != nil {
 		log.Fatalf("Unable to find which user we're running as: %s", err)

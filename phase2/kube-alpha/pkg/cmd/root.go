@@ -46,17 +46,11 @@ func init() {
 	RootCmd.AddCommand(NewCmdToolbox(os.Stdout, &config))
 
 	RootCmd.PersistentFlags().StringVarP(&config.disco, "disco", "", "weave",
-		`which service discovery mechanism to use for kubernetes
-bootstrap (choose from "weave", "dns", "token",
-"consul").`)
+		`which service discovery mechanism to use for kubernetes bootstrap (choose from "weave", "dns", "token", "consul").`)
 	RootCmd.PersistentFlags().StringVarP(&config.net, "net", "", "weave",
-		`which pod network to create (choose from "weave",
-"flannel")`)
+		`which pod network to create (choose from "weave", "flannel")`)
 	RootCmd.PersistentFlags().StringVarP(&config.pki, "pki", "", "auto",
-		`certificate provider, to ask the
-discovery mechanism to bootstrap certs for you when
-you "init" (chose from "vault", "amazon-cm", "containers",
-"token").`)
+		`certificate provider, to ask the discovery mechanism to bootstrap certs for you when you "init" (chose from "vault", "amazon-cm", "containers", "token").`)
 	RootCmd.PersistentFlags().BoolVar(&config.dryRun,
 		"dry-run", false, "Dry run. Useful for understanding what would be done.")
 
