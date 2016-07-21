@@ -1,4 +1,5 @@
 #!/bin/sh
+set -xe
 make crosscompile
 
 IP1=`docker-machine ip vm1`
