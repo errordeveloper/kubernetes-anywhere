@@ -22,7 +22,7 @@ func getLogFile(logfile string) *os.File {
 }
 
 // TODO - support multi master
-// TODO - take arguments (master, worker, or master-and-worker)
+// TODO - take arguments (master, node, or master-and-node)
 // TODO - ensure all calls are containerised and use Docker client
 // TODO - handle reboots
 
@@ -66,8 +66,13 @@ complete...
 	// TODO maybe this belongs in a different interface?
 	//
 	// we only do this on the first node for now
+	fmt.Println("Initializing PKI...")
 	w.initPKI()
+	fmt.Println("done!")
+	fmt.Println("Booting master...")
 	w.bootMaster()
+	fmt.Println("done!")
+    fmt.Println("Cluster ready!")
 }
 
 func (w *WeaveDisco) Join(peers []string) {
@@ -76,8 +81,14 @@ func (w *WeaveDisco) Join(peers []string) {
 	fmt.Println("Joining bootstrap network...")
 	w.launchWeave(peers)
 	fmt.Println("done!")
-	w.doWorkerPKI()
-	w.bootWorker()
+	fmt.Println("Initializing PKI...")
+	fmt.Println("Booting master...")
+	w.doNodePKI()
+	fmt.Println("done!")
+	fmt.Println("Booting node...")
+	w.bootNode()
+	fmt.Println("done!")
+    fmt.Println("Cluster ready!")
 }
 
 func (w *WeaveDisco) welcomeText() {
@@ -92,7 +103,7 @@ func (w *WeaveDisco) installNetwork() {
 		"curl", "-L", "git.io/weave", "-o", "/usr/local/bin/weave")
 	logCommand("0002_bootstrap_chmod_weave",
 		"chmod", "+x", "/usr/local/bin/weave")
-	log.Println("done!")
+	fmt.Println("done!")
 }
 
 func (w *WeaveDisco) launchWeave(peers []string) {
@@ -146,7 +157,7 @@ func (w *WeaveDisco) doMasterPKI() {
 	logCommand("0012_init_controller_manager_pki_container", "docker", "run", "--name=kube-controller-manager-pki", "kubernetes-anywhere:controller-manager-pki")
 }
 
-func (w *WeaveDisco) doWorkerPKI() {
+func (w *WeaveDisco) doNodePKI() {
 	logCommand("0005_load_toolbox_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "toolbox"))
 	logCommand("0006_load_kubelet_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "kubelet"))
 	logCommand("0007_load_proxy_pki_image", "sh", "-c", fmt.Sprintf(loadFromTmpPkiServer, "proxy"))
@@ -167,7 +178,7 @@ func (w *WeaveDisco) bootMaster() {
 		"docker", "--host=unix:///var/run/weave/weave.sock", "run", "--detach=true", "--name=kube-scheduler", "--volumes-from=kube-scheduler-pki", "weaveworks/kubernetes-anywhere:scheduler")
 }
 
-func (w *WeaveDisco) bootWorker() {
+func (w *WeaveDisco) bootNode() {
 	logCommand("0020_setup_kubelet_volumes",
 		"docker", "run", "--rm=true", "--volume=/:/rootfs", "--volume=/var/run/docker.sock:/docker.sock", "weaveworks/kubernetes-anywhere:toolbox", "setup-kubelet-volumes")
 	logCommand("0021_start_kubelet",
