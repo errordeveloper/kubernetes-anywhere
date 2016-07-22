@@ -40,6 +40,30 @@ func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
 			_launcher = launchers.NewContainerizedWeaveFirstMasterLauncher(info)
 
 			_launcher.Launch()
+
+			// Alternative version, we could change these interfaces to be more like:
+			/*
+				info := ClusterInfo{MasterIPs: strings.Split(args[0], ",")}
+				var (
+					_disco    DiscoveryProvider
+					_pki      PKI
+					_launcher Launcher
+				)
+
+				_disco = discovery_providers.NewWeaveDiscoveryProvider(info)
+
+				_disco.FirstMasterSetup()
+				_disco.FirstMasterLaunch()
+
+				_pki = pki.NewContainerizedWeavePKI(info)
+
+				_pki.FirstMasterInit()
+				_pki.FirstMasterPublish()
+
+				_launcher = launchers.NewContainerizedWeaveLauncher(info)
+
+				_launcher.FirstMasterLaunch()
+			*/
 		},
 	}
 	return cmd

@@ -38,6 +38,37 @@ func NewCmdJoin(out io.Writer, config *Config) *cobra.Command {
 			_launcher = launchers.NewContainerizedWeaveNodeLauncher(info)
 
 			_launcher.Launch()
+
+			// Alternative version, we could change these interfaces to be more like:
+			/*
+				info := ClusterInfo{MasterIPs: strings.Split(args[0], ",")}
+				var (
+					_disco    DiscoveryProvider
+					_pki      PKI
+					_launcher Launcher
+				)
+
+				_disco = discovery_providers.NewWeaveDiscoveryProvider(info)
+
+				_disco.NodeSetup()
+				_disco.NodeLaunch()
+
+				_pki = pki.NewContainerizedWeavePKI(info)
+
+				_pki.NodeFetch()
+				_pki.NodeInit()
+
+				_launcher = launchers.NewContainerizedWeaveLauncher(info)
+
+				_launcher.NodeLaunch()
+
+				// Or may be even like this:
+
+				_launcher = launchers.NewContainerizedWeaveLauncher(info).Node()
+
+				_launcher.Launch()
+
+			*/
 		},
 	}
 	return cmd
