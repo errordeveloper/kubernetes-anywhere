@@ -23,7 +23,8 @@ func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
 			info := ClusterInfo{MasterIPs: strings.Split(args[0], ",")}
 			var (
 				_disco    FirstMasterDiscoveryProvider
-				_pki      FirstMasterPKI
+				_pki1     FirstMasterPKI
+				_pki2     AnyMasterPKI
 				_launcher FirstMasterLauncher
 			)
 
@@ -32,10 +33,14 @@ func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
 			_disco.Setup()
 			_disco.Launch()
 
-			_pki = pki.NewContainerizedWeaveFirstMasterPKI(info)
+			_pki1 = pki.NewContainerizedWeaveFirstMasterPKI(info)
 
-			_pki.Init()
-			_pki.Publish()
+			_pki1.Init()
+			_pki1.Publish()
+
+			_pki2 = pki.NewContainerizedWeaveAnyMasterPKI(info)
+
+			_pki2.Init()
 
 			_launcher = launchers.NewContainerizedWeaveFirstMasterLauncher(info)
 
