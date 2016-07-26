@@ -13,5 +13,5 @@ func PrintMessage(m string) {
 }
 
 func PrintOkay() {
-	fmt.Println("  √")
+	fmt.Println("   ✓")
 }
