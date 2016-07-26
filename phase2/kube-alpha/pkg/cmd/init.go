@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	_ "fmt"
 	"io"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	. "github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/interfaces"
 	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/launchers"
 	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/pki"
+	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/util"
 )
 
 func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
@@ -28,10 +28,27 @@ func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
 				_launcher FirstMasterLauncher
 			)
 
+			util.PrintMessage(`
+				  Bootstrapping will now block until all servers join the
+				  network.  Please run:
+
+				      kube join <ip1>,<...>,<ipN>
+
+				  On all the other servers you want in your initial cluster,
+				  giving the IP addresses of all the servers, and then wait
+				  for up to 2 minutes for network bootstrapping to
+				  complete...
+			`)
+
 			_disco = discovery_providers.NewWeaveFirstMasterDiscoveryProvider(info)
 
 			_disco.Setup()
 			_disco.Launch()
+
+			util.PrintMessage("Bootstrap network successfully created!")
+			util.PrintOkay()
+
+			util.PrintMessage("Initializing PKI...")
 
 			_pki1 = pki.NewContainerizedWeaveFirstMasterPKI(info)
 
@@ -42,9 +59,15 @@ func NewCmdInit(out io.Writer, config *Config) *cobra.Command {
 
 			_pki2.Init()
 
+			util.PrintOkay()
+
+			util.PrintMessage("Booting master...")
+
 			_launcher = launchers.NewContainerizedWeaveFirstMasterLauncher(info)
 
 			_launcher.Launch()
+
+			util.PrintOkay()
 
 			// Alternative version, we could change these interfaces to be more like:
 			/*

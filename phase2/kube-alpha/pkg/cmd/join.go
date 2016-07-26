@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	_ "fmt"
 	"io"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 	. "github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/interfaces"
 	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/launchers"
 	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/pki"
+	"github.com/kubernetes/kubernetes-anywhere/phase2/kube-alpha/pkg/util"
 )
 
 func NewCmdJoin(out io.Writer, config *Config) *cobra.Command {
@@ -25,19 +25,31 @@ func NewCmdJoin(out io.Writer, config *Config) *cobra.Command {
 				_launcher NodeLauncher
 			)
 
+			util.PrintMessage("Joining bootstrap network...")
+
 			_disco = discovery_providers.NewWeaveNodeDiscoveryProvider(info)
 
 			_disco.Setup()
 			_disco.Launch()
+
+			util.PrintOkay()
+
+			util.PrintMessage("Initializing PKI...")
 
 			_pki = pki.NewContainerizedWeaveNodePKI(info)
 
 			_pki.Fetch()
 			_pki.Init()
 
+			util.PrintOkay()
+
+			util.PrintMessage("Booting node...")
+
 			_launcher = launchers.NewContainerizedWeaveNodeLauncher(info)
 
 			_launcher.Launch()
+
+			util.PrintOkay()
 
 			// Alternative version, we could change these interfaces to be more like:
 			/*
